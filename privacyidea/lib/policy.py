@@ -151,6 +151,7 @@ Time formats are
 and any combination of it. "dow" being day of week Mon, Tue, Wed, Thu, Fri,
 Sat, Sun.
 """
+import six
 
 from .log import log_with
 from configobj import ConfigObj
@@ -169,7 +170,8 @@ from privacyidea.lib.realm import get_realms
 from privacyidea.lib.resolver import get_resolver_list
 from privacyidea.lib.smtpserver import get_smtpservers
 from privacyidea.lib.radiusserver import get_radiusservers
-from privacyidea.lib.utils import check_time_in_range, reload_db, fetch_one_resource
+from privacyidea.lib.utils import (check_time_in_range, reload_db,
+                                   fetch_one_resource, is_true)
 from privacyidea.lib.user import User
 from privacyidea.lib import _
 import datetime
@@ -885,14 +887,12 @@ def set_policy(name=None, scope=None, action=None, realm=None, resolver=None,
     :return: The database ID od the the policy
     :rtype: int
     """
-    if type(active) in [str, unicode]:
-        active = active.lower() == "true"
-    if type(priority) in [str, unicode]:
+    active = is_true(active)
+    if isinstance(priority, six.string_types):
         priority = int(priority)
     if priority is not None and priority <= 0:
         raise ParameterError("Priority must be at least 1")
-    if type(check_all_resolvers) in [str, unicode]:
-        check_all_resolvers = check_all_resolvers.lower() == "true"
+    check_all_resolvers = is_true(check_all_resolvers)
     if type(action) == dict:
         action_list = []
         for k, v in action.items():

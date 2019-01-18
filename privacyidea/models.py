@@ -2525,10 +2525,10 @@ class AuthCache(MethodsMixin, db.Model):
 
     def __init__(self, username, realm, resolver, authentication,
                  first_auth=None, last_auth=None):
-        self.username = username
-        self.realm = realm
-        self.resolver = resolver
-        self.authentication = authentication
+        self.username = convert_column_to_unicode(username)
+        self.realm = convert_column_to_unicode(realm)
+        self.resolver = convert_column_to_unicode(resolver)
+        self.authentication = convert_column_to_unicode(authentication)
         self.first_auth = first_auth
         self.last_auth = last_auth
 

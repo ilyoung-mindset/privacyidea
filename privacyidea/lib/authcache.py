@@ -21,6 +21,7 @@
 #
 
 from ..models import AuthCache, db
+from privacyidea.lib.utils import to_bytes, to_unicode
 from sqlalchemy import and_
 from privacyidea.lib.crypto import hash
 import datetime
@@ -102,4 +103,3 @@ def verify_in_cache(username, realm, resolver, password,
         delete_from_cache(username, realm, resolver, password)
 
     return result
-

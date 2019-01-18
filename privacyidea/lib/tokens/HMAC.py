@@ -35,11 +35,14 @@ import hmac
 import logging
 import struct
 import binascii
+import six
 
 from hashlib import sha1
 from privacyidea.lib.log import log_with
+from privacyidea.lib.utils import to_unicode
 
 import sys
+
 (ma, mi, _, _, _,) = sys.version_info
 pver = float(int(ma) + int(mi) * 0.1)
 
@@ -79,7 +82,7 @@ class HmacOtp(object):
             data_input = binascii.unhexlify(challenge)
 
         if key is None:
-            dig = str(self.secretObj.hmac_digest(data_input, self.hashfunc))
+            dig = self.secretObj.hmac_digest(data_input, self.hashfunc)
         else:
             if pver > 2.6:
                 dig = hmac.new(key, data_input, self.hashfunc).digest()
@@ -89,12 +92,12 @@ class HmacOtp(object):
         return dig
 
     def truncate(self, digest):
-        offset = ord(digest[-1:]) & 0x0f
+        offset = six.indexbytes(digest, -1) & 0x0f
 
-        binary = (ord(digest[offset + 0]) & 0x7f) << 24
-        binary |= (ord(digest[offset + 1]) & 0xff) << 16
-        binary |= (ord(digest[offset + 2]) & 0xff) << 8
-        binary |= (ord(digest[offset + 3]) & 0xff)
+        binary = (six.indexbytes(digest, offset) & 0x7f) << 24
+        binary |= (six.indexbytes(digest, offset + 1) & 0xff) << 16
+        binary |= (six.indexbytes(digest, offset + 2) & 0xff) << 8
+        binary |= (six.indexbytes(digest, offset + 3) & 0xff)
 
         return binary % (10 ** self.digits)
 
@@ -112,6 +115,7 @@ class HmacOtp(object):
         :param do_truncation:
         :param challenge: hexlified challenge
         :return:
+        :rtype: str
         """
         if counter is None:
             counter = self.counter
@@ -129,7 +133,7 @@ class HmacOtp(object):
             
         if inc_counter:
             self.counter = counter + 1
-        return sotp
+        return to_unicode(sotp)
 
     @log_with(log)
     def checkOtp(self, anOtpVal, window, symetric=False):
@@ -147,7 +151,7 @@ class HmacOtp(object):
             otpval = self.generate(c)
             #log.debug("calculating counter {0!r}".format(c))
 
-            if unicode(otpval) == unicode(anOtpVal):
+            if otpval == anOtpVal:
                 res = c
                 break
         # return -1 or the counter

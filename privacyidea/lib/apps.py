@@ -45,11 +45,11 @@ This only depends on the ConfigPolicy.
 import binascii
 import base64
 
-import logging
-log = logging.getLogger(__name__)
+import logging; log = logging.getLogger(__name__)
 from six.moves.urllib.parse import quote
 from privacyidea.lib.log import log_with
 from privacyidea.lib.user import User
+from privacyidea.lib.utils import to_byte_string
 
 MAX_QRCODE_LEN = 180
 
@@ -63,12 +63,10 @@ def _construct_extra_parameters(extra_data):
     """
     extra_data_list = []
     for key, value in extra_data.items():
-        if isinstance(key, unicode):
-            key = key.encode('utf-8')
-        if isinstance(value, unicode):
-            value = value.encode('utf-8')
-        extra_data_list.append('{key}={value}'.format(key=quote(str(key)),
-                                                      value=quote(str(value))))
+        key = to_byte_string(key)
+        value = to_byte_string(value)
+        extra_data_list.append('{key}={value}'.format(key=quote(key),
+                                                      value=quote(value)))
     return ('&' if extra_data_list else '') + '&'.join(extra_data_list)
 
 
@@ -126,7 +124,7 @@ def create_google_authenticator_url(key=None, user=None,
 
     key_bin = binascii.unhexlify(key)
     # also strip the padding =, as it will get problems with the google app.
-    otpkey = base64.b32encode(key_bin).strip('=')
+    otpkey = base64.b32encode(key_bin).decode('utf8').strip('=')
 
     base_len = len("otpauth://{0!s}/?secret={1!s}&counter=1".format(tokentype, otpkey))
     allowed_label_len = MAX_QRCODE_LEN - base_len

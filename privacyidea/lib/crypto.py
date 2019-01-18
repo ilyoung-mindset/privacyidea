@@ -290,7 +290,7 @@ def encryptPassword(password):
     :param password: the password
     :type password: bytes or str
     :return: the encrypted password
-    :rtype: bytes
+    :rtype: str
     """
     hsm = get_hsm()
     try:
@@ -298,7 +298,7 @@ def encryptPassword(password):
     except Exception as exx:  # pragma: no cover
         log.warning(exx)
         ret = "FAILED TO ENCRYPT PASSWORD!"
-    return ret
+    return _to_unicode(ret)
 
 
 @log_with(log, log_entry=False)
@@ -320,6 +320,7 @@ def decryptPassword(cryptPass, convert_unicode=False):
     If an error occurs during decryption, return FAILED_TO_DECRYPT_PASSWORD.
 
     :param cryptPass: bytestring
+    :type cryptPass: bytes or str
     :param convert_unicode: If true, interpret the decrypted password as an UTF-8 string
                             and convert it to unicode. If an error occurs here,
                             the original bytestring is returned.
@@ -336,7 +337,7 @@ def decryptPassword(cryptPass, convert_unicode=False):
     # keyword argument to avoid breaking compatibility.
     hsm = get_hsm()
     try:
-        ret = hsm.decrypt_password(cryptPass)
+        ret = hsm.decrypt_password(_to_bytes(cryptPass))
     except Exception as exx:
         log.warning(exx)
         ret = FAILED_TO_DECRYPT_PASSWORD
